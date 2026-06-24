@@ -26,7 +26,7 @@ function onConnect() {
     statusEl.textContent = "Connected";
     statusEl.className = "status connected";
     client.subscribe(topic); // Subscribe to sync across multiple juri dashboards
-    sendMessage({ action: "hide" });
+    // REMOVED sendMessage({ action: "hide" }); to prevent resetting timer on refresh
 }
 
 function onConnectionLost(responseObject) {
@@ -81,6 +81,38 @@ function onMessageArrived(message) {
             btnPStart.disabled = false;
             btnPPause.disabled = true;
             inputPTime.disabled = false;
+        } else if (payload.action === "qna_tick" || payload.action === "qna_start") {
+            qnaTime = payload.seconds;
+            qnaDisplay.textContent = formatTime(qnaTime);
+            timerWorker.postMessage('qna_stop'); // Biarkan dashboard pengirim yang menghitung
+            qnaInterval = true;
+            btnQStart.disabled = true;
+            btnQPause.disabled = false;
+            inputQTime.disabled = true;
+        } else if (payload.action === "qna_pause") {
+            timerWorker.postMessage('qna_stop');
+            qnaInterval = false;
+            qnaTime = payload.seconds;
+            qnaDisplay.textContent = formatTime(qnaTime);
+            btnQStart.disabled = false;
+            btnQPause.disabled = true;
+            inputQTime.disabled = false;
+        } else if (payload.action === "qna_reset") {
+            timerWorker.postMessage('qna_stop');
+            qnaInterval = false;
+            qnaTime = payload.seconds;
+            qnaDisplay.textContent = formatTime(qnaTime);
+            btnQStart.disabled = false;
+            btnQPause.disabled = true;
+            inputQTime.disabled = false;
+        } else if (payload.action === "qna_timesup") {
+            timerWorker.postMessage('qna_stop');
+            qnaInterval = false;
+            qnaTime = 0;
+            qnaDisplay.textContent = formatTime(qnaTime);
+            btnQStart.disabled = false;
+            btnQPause.disabled = true;
+            inputQTime.disabled = false;
         }
     } catch (e) {
         console.error("Parse error", e);
@@ -91,7 +123,7 @@ function onMessageArrived(message) {
 let presentInterval = false;
 let presentTime = 180;
 
-let qnaInterval = null;
+let qnaInterval = false;
 let qnaTime = 180;
 
 function formatTime(seconds) {
@@ -127,6 +159,7 @@ qnaDisplay.textContent = formatTime(parseInt(inputQTime.value) * 60);
 // ===== Web Worker untuk Timer (Anti Throttling di Background) =====
 const workerCode = `
     let interval = null;
+    let qna_interval = null;
     self.onmessage = function(e) {
         if (e.data === 'start') {
             if (interval) clearInterval(interval);
@@ -134,6 +167,12 @@ const workerCode = `
         } else if (e.data === 'stop') {
             if (interval) clearInterval(interval);
             interval = null;
+        } else if (e.data === 'qna_start') {
+            if (qna_interval) clearInterval(qna_interval);
+            qna_interval = setInterval(() => self.postMessage('qna_tick'), 1000);
+        } else if (e.data === 'qna_stop') {
+            if (qna_interval) clearInterval(qna_interval);
+            qna_interval = null;
         }
     };
 `;
@@ -143,6 +182,8 @@ const timerWorker = new Worker(URL.createObjectURL(blob));
 timerWorker.onmessage = function(e) {
     if (e.data === 'tick') {
         tickPresent();
+    } else if (e.data === 'qna_tick') {
+        tickQnA();
     }
 };
 
@@ -217,12 +258,14 @@ function tickQnA() {
     if (qnaTime > 0) {
         qnaTime--;
         qnaDisplay.textContent = formatTime(qnaTime);
+        sendMessage({ action: "qna_tick", seconds: qnaTime });
     } else {
-        clearInterval(qnaInterval);
-        qnaInterval = null;
+        timerWorker.postMessage('qna_stop');
+        qnaInterval = false;
         btnQStart.disabled = false;
         btnQPause.disabled = true;
         inputQTime.disabled = false;
+        sendMessage({ action: "qna_timesup" });
         alert("Waktu Q&A Habis!");
     }
 }
@@ -230,13 +273,15 @@ function tickQnA() {
 btnQStart.addEventListener("click", () => {
     if (!qnaInterval) {
         if (presentInterval) btnPReset.click();
-        sendMessage({ action: "hide" });
 
         if (qnaTime === parseInt(inputQTime.value) * 60 || qnaDisplay.textContent === formatTime(parseInt(inputQTime.value) * 60)) {
             qnaTime = parseInt(inputQTime.value) * 60;
         }
 
-        qnaInterval = setInterval(tickQnA, 1000);
+        qnaInterval = true;
+        sendMessage({ action: "qna_tick", seconds: qnaTime });
+        
+        timerWorker.postMessage('qna_start');
         btnQStart.disabled = true;
         btnQPause.disabled = false;
         inputQTime.disabled = true;
@@ -245,22 +290,24 @@ btnQStart.addEventListener("click", () => {
 
 btnQPause.addEventListener("click", () => {
     if (qnaInterval) {
-        clearInterval(qnaInterval);
-        qnaInterval = null;
+        timerWorker.postMessage('qna_stop');
+        qnaInterval = false;
         btnQStart.disabled = false;
         btnQPause.disabled = true;
         inputQTime.disabled = false;
+        sendMessage({ action: "qna_pause", seconds: qnaTime });
     }
 });
 
 btnQReset.addEventListener("click", () => {
-    clearInterval(qnaInterval);
-    qnaInterval = null;
+    timerWorker.postMessage('qna_stop');
+    qnaInterval = false;
     qnaTime = parseInt(inputQTime.value) * 60;
     qnaDisplay.textContent = formatTime(qnaTime);
     btnQStart.disabled = false;
     btnQPause.disabled = true;
     inputQTime.disabled = false;
+    sendMessage({ action: "qna_reset", seconds: qnaTime });
 });
 
 connectMQTT();
