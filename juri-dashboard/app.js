@@ -56,12 +56,14 @@ function onMessageArrived(message) {
             presentDisplay.textContent = formatTime(presentTime);
             timerWorker.postMessage('stop'); // Biarkan dashboard pengirim yang menghitung
             presentInterval = true;
+            updateFocusState();
             btnPStart.disabled = true;
             btnPPause.disabled = false;
             inputPTime.disabled = true;
         } else if (payload.action === "pause") {
             timerWorker.postMessage('stop');
             presentInterval = false;
+            updateFocusState();
             presentTime = payload.seconds;
             presentDisplay.textContent = formatTime(presentTime);
             btnPStart.disabled = false;
@@ -70,6 +72,7 @@ function onMessageArrived(message) {
         } else if (payload.action === "timesup") {
             timerWorker.postMessage('stop');
             presentInterval = false;
+            updateFocusState();
             presentTime = 0;
             presentDisplay.textContent = formatTime(presentTime);
             btnPStart.disabled = false;
@@ -78,6 +81,7 @@ function onMessageArrived(message) {
         } else if (payload.action === "hide") {
             timerWorker.postMessage('stop');
             presentInterval = false;
+            updateFocusState();
             btnPStart.disabled = false;
             btnPPause.disabled = true;
             inputPTime.disabled = false;
@@ -86,12 +90,14 @@ function onMessageArrived(message) {
             qnaDisplay.textContent = formatTime(qnaTime);
             timerWorker.postMessage('qna_stop'); // Biarkan dashboard pengirim yang menghitung
             qnaInterval = true;
+            updateFocusState();
             btnQStart.disabled = true;
             btnQPause.disabled = false;
             inputQTime.disabled = true;
         } else if (payload.action === "qna_pause") {
             timerWorker.postMessage('qna_stop');
             qnaInterval = false;
+            updateFocusState();
             qnaTime = payload.seconds;
             qnaDisplay.textContent = formatTime(qnaTime);
             btnQStart.disabled = false;
@@ -100,6 +106,7 @@ function onMessageArrived(message) {
         } else if (payload.action === "qna_reset") {
             timerWorker.postMessage('qna_stop');
             qnaInterval = false;
+            updateFocusState();
             qnaTime = payload.seconds;
             qnaDisplay.textContent = formatTime(qnaTime);
             btnQStart.disabled = false;
@@ -108,6 +115,7 @@ function onMessageArrived(message) {
         } else if (payload.action === "qna_timesup") {
             timerWorker.postMessage('qna_stop');
             qnaInterval = false;
+            updateFocusState();
             qnaTime = 0;
             qnaDisplay.textContent = formatTime(qnaTime);
             btnQStart.disabled = false;
@@ -137,6 +145,50 @@ const inputPTime = document.getElementById("input-present-time");
 const inputQTime = document.getElementById("input-qna-time");
 const presentDisplay = document.getElementById("present-display");
 const qnaDisplay = document.getElementById("qna-display");
+const panelsContainer = document.querySelector('.panels');
+const presentPanel = document.getElementById('present-panel');
+const qnaPanel = document.getElementById('qna-panel');
+
+function updateFocusState() {
+    if (presentInterval) {
+        panelsContainer.classList.add('has-focus');
+        presentPanel.classList.add('focused');
+        qnaPanel.classList.remove('focused');
+    } else if (qnaInterval) {
+        panelsContainer.classList.add('has-focus');
+        qnaPanel.classList.add('focused');
+        presentPanel.classList.remove('focused');
+    } else {
+        // Jika keduanya mati, hapus fokus otomatis (kembali sejajar)
+        panelsContainer.classList.remove('has-focus');
+        presentPanel.classList.remove('focused');
+        qnaPanel.classList.remove('focused');
+    }
+}
+
+// Fokus manual jika di-klik
+presentPanel.addEventListener('click', () => {
+    if (!presentInterval && !qnaInterval) {
+        panelsContainer.classList.add('has-focus');
+        presentPanel.classList.add('focused');
+        qnaPanel.classList.remove('focused');
+    }
+});
+
+qnaPanel.addEventListener('click', () => {
+    if (!presentInterval && !qnaInterval) {
+        panelsContainer.classList.add('has-focus');
+        qnaPanel.classList.add('focused');
+        presentPanel.classList.remove('focused');
+    }
+});
+
+// Tutup fokus jika klik di luar panel (di container)
+document.body.addEventListener('click', (e) => {
+    if (!presentInterval && !qnaInterval && !e.target.closest('.panel') && !e.target.closest('.controls')) {
+        updateFocusState(); // Akan me-reset karena keduanya mati
+    }
+});
 
 inputPTime.addEventListener("change", () => {
     if (!presentInterval) {
@@ -200,6 +252,7 @@ function tickPresent() {
     } else {
         timerWorker.postMessage('stop');
         presentInterval = false;
+        updateFocusState();
         btnPStart.disabled = false;
         btnPPause.disabled = true;
         inputPTime.disabled = false;
@@ -207,7 +260,8 @@ function tickPresent() {
     }
 }
 
-btnPStart.addEventListener("click", () => {
+btnPStart.addEventListener("click", (e) => {
+    e.stopPropagation();
     if (!presentInterval) {
         if (qnaInterval) btnQReset.click();
 
@@ -217,6 +271,7 @@ btnPStart.addEventListener("click", () => {
         }
 
         presentInterval = true;
+        updateFocusState();
         sendMessage({ action: "tick", seconds: presentTime });
         
         timerWorker.postMessage('start');
@@ -226,10 +281,12 @@ btnPStart.addEventListener("click", () => {
     }
 });
 
-btnPPause.addEventListener("click", () => {
+btnPPause.addEventListener("click", (e) => {
+    e.stopPropagation();
     if (presentInterval) {
         timerWorker.postMessage('stop');
         presentInterval = false;
+        updateFocusState();
         btnPStart.disabled = false;
         btnPPause.disabled = true;
         inputPTime.disabled = false;
@@ -237,9 +294,11 @@ btnPPause.addEventListener("click", () => {
     }
 });
 
-btnPReset.addEventListener("click", () => {
+btnPReset.addEventListener("click", (e) => {
+    e.stopPropagation();
     timerWorker.postMessage('stop');
     presentInterval = false;
+    updateFocusState();
     presentTime = parseInt(inputPTime.value) * 60;
     presentDisplay.textContent = formatTime(presentTime);
     btnPStart.disabled = false;
@@ -262,6 +321,7 @@ function tickQnA() {
     } else {
         timerWorker.postMessage('qna_stop');
         qnaInterval = false;
+        updateFocusState();
         btnQStart.disabled = false;
         btnQPause.disabled = true;
         inputQTime.disabled = false;
@@ -270,7 +330,8 @@ function tickQnA() {
     }
 }
 
-btnQStart.addEventListener("click", () => {
+btnQStart.addEventListener("click", (e) => {
+    e.stopPropagation();
     if (!qnaInterval) {
         if (presentInterval) btnPReset.click();
 
@@ -279,6 +340,7 @@ btnQStart.addEventListener("click", () => {
         }
 
         qnaInterval = true;
+        updateFocusState();
         sendMessage({ action: "qna_tick", seconds: qnaTime });
         
         timerWorker.postMessage('qna_start');
@@ -288,10 +350,12 @@ btnQStart.addEventListener("click", () => {
     }
 });
 
-btnQPause.addEventListener("click", () => {
+btnQPause.addEventListener("click", (e) => {
+    e.stopPropagation();
     if (qnaInterval) {
         timerWorker.postMessage('qna_stop');
         qnaInterval = false;
+        updateFocusState();
         btnQStart.disabled = false;
         btnQPause.disabled = true;
         inputQTime.disabled = false;
@@ -299,9 +363,11 @@ btnQPause.addEventListener("click", () => {
     }
 });
 
-btnQReset.addEventListener("click", () => {
+btnQReset.addEventListener("click", (e) => {
+    e.stopPropagation();
     timerWorker.postMessage('qna_stop');
     qnaInterval = false;
+    updateFocusState();
     qnaTime = parseInt(inputQTime.value) * 60;
     qnaDisplay.textContent = formatTime(qnaTime);
     btnQStart.disabled = false;

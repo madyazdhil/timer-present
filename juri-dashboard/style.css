@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap');
+
 * {
     box-sizing: border-box;
     margin: 0;
@@ -5,137 +7,190 @@
 }
 
 body {
-    font-family: 'Inter', sans-serif;
-    background-color: #f4f7f6;
-    color: #333;
+    font-family: 'Outfit', sans-serif;
+    background-color: #f7f4ec; /* Creamy beige background */
+    color: #1a1a1a;
     display: flex;
     justify-content: center;
+    align-items: center;
+    min-height: 100vh;
     padding: 40px;
 }
 
 .container {
-    background: #fff;
-    padding: 30px;
-    border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
     width: 100%;
-    max-width: 800px;
+    max-width: 900px;
 }
 
 header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 2px solid #eee;
-    padding-bottom: 20px;
-    margin-bottom: 30px;
+    margin-bottom: 40px;
+    padding: 0 20px;
 }
 
 h1 {
-    font-size: 24px;
-    color: #2c3e50;
+    font-size: 28px;
+    font-weight: 800;
+    color: #1a1a1a;
+    letter-spacing: -0.5px;
 }
 
 .status {
-    padding: 6px 12px;
-    border-radius: 20px;
+    padding: 8px 16px;
+    border-radius: 30px;
     font-size: 14px;
     font-weight: 600;
 }
 
-.status.disconnected { background: #fee2e2; color: #ef4444; }
-.status.connected { background: #dcfce7; color: #22c55e; }
+.status.disconnected { background: #fecaca; color: #991b1b; }
+.status.connected { background: #bbf7d0; color: #166534; }
 
 .panels {
     display: flex;
     gap: 30px;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    perspective: 1000px;
 }
 
 .panel {
     flex: 1;
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    padding: 20px;
+    background: #ffffff;
+    border-radius: 35px;
+    padding: 50px 30px;
     text-align: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+    transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+    cursor: pointer;
+    transform-origin: center center;
+}
+
+.panel:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 40px rgba(0,0,0,0.06);
+}
+
+/* Dynamic Focus Effects */
+.panels.has-focus .panel:not(.focused) {
+    transform: scale(0.85) translateZ(-50px);
+    opacity: 0.5;
+    filter: blur(4px);
+}
+
+.panels.has-focus .panel:not(.focused):hover {
+    opacity: 0.8;
+    filter: blur(1px);
+    transform: scale(0.9) translateZ(-20px);
+}
+
+.panels.has-focus .panel.focused {
+    transform: scale(1.05) translateZ(0);
+    box-shadow: 0 25px 50px rgba(0,0,0,0.1);
+    z-index: 10;
 }
 
 .panel h2 {
-    font-size: 18px;
-    color: #475569;
-    margin-bottom: 15px;
+    font-size: 20px;
+    color: #1a1a1a;
+    margin-bottom: 25px;
+    font-weight: 800;
 }
 
 .input-group {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
-    margin-bottom: 10px;
+    gap: 12px;
+    margin-bottom: 20px;
 }
 
 .input-group label {
-    font-size: 14px;
-    color: #64748b;
+    font-size: 15px;
+    color: #555;
     font-weight: 600;
 }
 
 .input-group input {
-    width: 60px;
-    padding: 6px;
-    border: 1px solid #cbd5e1;
-    border-radius: 4px;
-    font-family: 'Inter', sans-serif;
-    font-size: 14px;
+    width: 75px;
+    padding: 10px;
+    border: 2px solid #f0f0f0;
+    border-radius: 16px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 16px;
+    font-weight: 800;
     text-align: center;
     outline: none;
+    transition: border-color 0.2s;
+    background: #fafafa;
 }
 
 .input-group input:focus {
-    border-color: #3b82f6;
+    border-color: #1a1a1a;
 }
 
 .time-display {
-    font-size: 64px;
+    font-size: 85px;
     font-weight: 800;
     font-variant-numeric: tabular-nums;
-    color: #0f172a;
-    margin: 10px 0 20px 0;
+    color: #1a1a1a;
+    margin: 20px 0 35px 0;
+    letter-spacing: -3px;
+    line-height: 1;
 }
 
 .controls {
     display: flex;
-    gap: 10px;
+    gap: 12px;
     justify-content: center;
-    margin-bottom: 15px;
+    margin-bottom: 25px;
 }
 
 .btn {
-    padding: 10px 16px;
+    padding: 16px 28px;
     border: none;
-    border-radius: 6px;
-    font-size: 14px;
-    font-weight: 600;
+    border-radius: 30px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 15px;
+    font-weight: 800;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.3s;
+    letter-spacing: 0.5px;
 }
 
 .btn:disabled {
-    opacity: 0.5;
+    opacity: 0.4;
     cursor: not-allowed;
+    transform: none !important;
 }
 
-.btn.primary { background: #3b82f6; color: white; }
-.btn.primary:not(:disabled):hover { background: #2563eb; }
+/* Reference image style buttons: pastel/dark contrast */
+.btn.primary { background: #1a1a1a; color: white; }
+.btn.primary:not(:disabled):hover { background: #333; transform: translateY(-2px); }
 
-.btn.secondary { background: #e2e8f0; color: #475569; }
-.btn.secondary:not(:disabled):hover { background: #cbd5e1; }
+.btn.secondary { background: #f1f1f1; color: #1a1a1a; }
+.btn.secondary:not(:disabled):hover { background: #e5e5e5; transform: translateY(-2px); }
 
-.btn.danger { background: #ef4444; color: white; }
-.btn.danger:not(:disabled):hover { background: #dc2626; }
+.btn.danger { background: #ffe4e6; color: #e11d48; } 
+.btn.danger:not(:disabled):hover { background: #fecdd3; transform: translateY(-2px); }
+
+/* Let's make Presentasi primary button pastel blue and QnA pastel green to match reference aesthetic */
+#present-panel .btn.primary { background: #dbeafe; color: #1e40af; }
+#present-panel .btn.primary:not(:disabled):hover { background: #bfdbfe; }
+
+#qna-panel .btn.primary { background: #dcfce7; color: #166534; }
+#qna-panel .btn.primary:not(:disabled):hover { background: #bbf7d0; }
+
 
 .desc {
-    font-size: 13px;
-    color: #64748b;
-    margin-top: 15px;
+    font-size: 14px;
+    color: #666;
+    margin-top: 20px;
+    font-weight: 600;
+    background: #f7f4ec;
+    padding: 12px 20px;
+    border-radius: 20px;
+    display: inline-block;
 }
