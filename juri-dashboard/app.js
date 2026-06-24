@@ -85,8 +85,8 @@ function onMessageArrived(message) {
             btnPStart.disabled = false;
             btnPPause.disabled = true;
             inputPTime.disabled = false;
-            flashOverlay.classList.add('show');
-            presentModal.classList.add('show'); // Tampilkan pop up
+            flashOverlay?.classList.add('show');
+            presentModal?.classList.add('show'); // Tampilkan pop up
         } else if (payload.action === "hide") {
             timerWorker.postMessage('stop');
             presentInterval = false;
@@ -136,8 +136,8 @@ function onMessageArrived(message) {
             btnQStart.disabled = false;
             btnQPause.disabled = true;
             inputQTime.disabled = false;
-            qnaModal.classList.add('show');
-            flashOverlay.classList.add('show'); // Nyalakan flash merah
+            qnaModal?.classList.add('show');
+            flashOverlay?.classList.add('show'); // Nyalakan flash merah
         }
     } catch (e) {
         console.error("Parse error", e);
@@ -188,14 +188,14 @@ setInterval(() => {
 }, 1000);
 
 // Fungsi untuk menutup modal
-btnCloseModal.addEventListener('click', () => {
-    qnaModal.classList.remove('show');
-    flashOverlay.classList.remove('show');
+btnCloseModal?.addEventListener('click', () => {
+    qnaModal?.classList.remove('show');
+    flashOverlay?.classList.remove('show');
 });
 
-btnClosePresentModal.addEventListener('click', () => {
-    presentModal.classList.remove('show');
-    flashOverlay.classList.remove('show');
+btnClosePresentModal?.addEventListener('click', () => {
+    presentModal?.classList.remove('show');
+    flashOverlay?.classList.remove('show');
 });
 
 function updateFocusState() {
@@ -321,21 +321,21 @@ function tickPresent() {
         localStorage.setItem('kalananti_pTime', presentTime);
         localStorage.setItem('kalananti_pRunning', 'true');
     } else {
-        timerWorker.postMessage('stop');
-        presentInterval = false;
-        updateFocusState();
-        btnPStart.disabled = false;
-        btnPPause.disabled = true;
-        inputPTime.disabled = false;
-        sendMessage({ action: "timesup" });
-        flashOverlay.classList.add('show'); // Nyalakan flash merah
-        localStorage.setItem('kalananti_pRunning', 'false');
+            timerWorker.postMessage('stop');
+            presentInterval = false;
+            updateFocusState();
+            btnPStart.disabled = false;
+            btnPPause.disabled = true;
+            inputPTime.disabled = false;
+            sendMessage({ action: "timesup" });
+            flashOverlay?.classList.add('show'); // Nyalakan flash merah
+            localStorage.setItem('kalananti_pRunning', 'false');
+        }
     }
-}
 
 btnPStart.addEventListener("click", (e) => {
     e.stopPropagation();
-    flashOverlay.classList.remove('show'); // Matikan flash jika mulai lagi
+    flashOverlay?.classList.remove('show'); // Matikan flash jika mulai lagi
     if (!presentInterval) {
         if (qnaInterval) btnQReset.click();
 
@@ -370,7 +370,7 @@ btnPPause.addEventListener("click", (e) => {
 
 btnPReset.addEventListener("click", (e) => {
     e.stopPropagation();
-    flashOverlay.classList.remove('show'); // Matikan flash jika direset
+    flashOverlay?.classList.remove('show'); // Matikan flash jika direset
     timerWorker.postMessage('stop');
     presentInterval = false;
     updateFocusState();
@@ -399,22 +399,22 @@ function tickQnA() {
         localStorage.setItem('kalananti_qTime', qnaTime);
         localStorage.setItem('kalananti_qRunning', 'true');
     } else {
-        timerWorker.postMessage('qna_stop');
-        qnaInterval = false;
-        updateFocusState();
-        btnQStart.disabled = false;
-        btnQPause.disabled = true;
-        inputQTime.disabled = false;
-        sendMessage({ action: "qna_timesup" });
-        qnaModal.classList.add('show');
-        flashOverlay.classList.add('show'); // Nyalakan flash merah
-        localStorage.setItem('kalananti_qRunning', 'false');
+            timerWorker.postMessage('qna_stop');
+            qnaInterval = false;
+            updateFocusState();
+            btnQStart.disabled = false;
+            btnQPause.disabled = true;
+            inputQTime.disabled = false;
+            sendMessage({ action: "qna_timesup" });
+            qnaModal?.classList.add('show');
+            flashOverlay?.classList.add('show'); // Nyalakan flash merah
+            localStorage.setItem('kalananti_qRunning', 'false');
+        }
     }
-}
 
 btnQStart.addEventListener("click", (e) => {
     e.stopPropagation();
-    flashOverlay.classList.remove('show'); // Matikan flash jika mulai lagi
+    flashOverlay?.classList.remove('show'); // Matikan flash jika mulai lagi
     if (!qnaInterval) {
         if (presentInterval) btnPReset.click();
 
@@ -448,7 +448,7 @@ btnQPause.addEventListener("click", (e) => {
 
 btnQReset.addEventListener("click", (e) => {
     e.stopPropagation();
-    flashOverlay.classList.remove('show'); // Matikan flash jika direset
+    flashOverlay?.classList.remove('show'); // Matikan flash jika direset
     timerWorker.postMessage('qna_stop');
     qnaInterval = false;
     updateFocusState();
