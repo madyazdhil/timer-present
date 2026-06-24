@@ -11,7 +11,6 @@ timesUpOverlay.id = "kalananti-timesup-overlay";
 timesUpOverlay.innerHTML = `
     <h1>Waktu Habis!</h1>
     <p>Silakan akhiri presentasi Anda.</p>
-    <p style="font-size: 14px; opacity: 0.7; margin-top: 10px;">(Klik layar ini jika suara tidak muncul)</p>
 `;
 
 // Inject iframe MQTT yang kebal terhadap CSP web tujuan

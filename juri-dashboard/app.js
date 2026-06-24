@@ -148,6 +148,13 @@ const qnaDisplay = document.getElementById("qna-display");
 const panelsContainer = document.querySelector('.panels');
 const presentPanel = document.getElementById('present-panel');
 const qnaPanel = document.getElementById('qna-panel');
+const qnaModal = document.getElementById('qna-modal');
+const btnCloseModal = document.getElementById('btn-close-modal');
+
+// Fungsi untuk menutup modal
+btnCloseModal.addEventListener('click', () => {
+    qnaModal.classList.remove('show');
+});
 
 function updateFocusState() {
     if (presentInterval) {
@@ -326,7 +333,7 @@ function tickQnA() {
         btnQPause.disabled = true;
         inputQTime.disabled = false;
         sendMessage({ action: "qna_timesup" });
-        alert("Waktu Q&A Habis!");
+        qnaModal.classList.add('show');
     }
 }
 
