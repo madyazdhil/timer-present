@@ -11,6 +11,7 @@ timesUpOverlay.id = "kalananti-timesup-overlay";
 timesUpOverlay.innerHTML = `
     <h1>Waktu Habis!</h1>
     <p>Silakan akhiri presentasi Anda.</p>
+    <p style="font-size: 14px; opacity: 0.7; margin-top: 10px;">(Klik layar ini jika suara tidak muncul)</p>
 `;
 
 // Inject iframe MQTT yang kebal terhadap CSP web tujuan
@@ -50,6 +51,12 @@ function unlockAudio() {
 // Tangkap sembarang klik/ketikan dari siswa di halaman untuk me-unlock audio
 window.addEventListener('click', unlockAudio, { once: true });
 window.addEventListener('keydown', unlockAudio, { once: true });
+
+// Paksa aktifkan jika overlay merah di-klik (sebagai pengaman tambahan)
+timesUpOverlay.addEventListener('click', () => {
+    unlockAudio();
+    playChime();
+});
 
 // Fungsi untuk memutar suara "Time's Up" yang elegan menggunakan Web Audio API
 function playChime() {
