@@ -31,37 +31,64 @@ function formatTime(seconds) {
     return `${m}:${s}`;
 }
 
+// --- Web Audio API Setup ---
+let audioCtx = null;
+
+// Fungsi untuk membuat/membangunkan AudioContext saat ada interaksi pengguna
+function unlockAudio() {
+    if (!audioCtx) {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (AudioContext) {
+            audioCtx = new AudioContext();
+        }
+    }
+    if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume().catch(e => console.warn(e));
+    }
+}
+
+// Tangkap sembarang klik/ketikan dari siswa di halaman untuk me-unlock audio
+window.addEventListener('click', unlockAudio, { once: true });
+window.addEventListener('keydown', unlockAudio, { once: true });
+
 // Fungsi untuk memutar suara "Time's Up" yang elegan menggunakan Web Audio API
 function playChime() {
     try {
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        if (!AudioContext) return;
-        const audioCtx = new AudioContext();
+        if (!audioCtx) unlockAudio();
+        if (!audioCtx) return;
         
-        // Memainkan 3 nada berurutan (Arpeggio)
-        const playTone = (freq, startTime, duration) => {
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(freq, startTime);
-            
-            gain.gain.setValueAtTime(0, startTime);
-            gain.gain.linearRampToValueAtTime(0.3, startTime + 0.05); // Fade in cepat
-            gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration); // Fade out perlahan
-            
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            
-            osc.start(startTime);
-            osc.stop(startTime + duration);
+        const playNotes = () => {
+            // Memainkan 3 nada berurutan (Arpeggio)
+            const playTone = (freq, startTime, duration) => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, startTime);
+                
+                gain.gain.setValueAtTime(0, startTime);
+                gain.gain.linearRampToValueAtTime(0.3, startTime + 0.05); // Fade in cepat
+                gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration); // Fade out perlahan
+                
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                
+                osc.start(startTime);
+                osc.stop(startTime + duration);
+            };
+
+            const now = audioCtx.currentTime;
+            playTone(523.25, now, 1.5);       // C5
+            playTone(659.25, now + 0.15, 1.5); // E5
+            playTone(783.99, now + 0.3, 2.5);  // G5
+            playTone(1046.50, now + 0.45, 3.0); // C6
         };
 
-        const now = audioCtx.currentTime;
-        playTone(523.25, now, 1.5);       // C5
-        playTone(659.25, now + 0.15, 1.5); // E5
-        playTone(783.99, now + 0.3, 2.5);  // G5
-        playTone(1046.50, now + 0.45, 3.0); // C6
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume().then(playNotes).catch(e => console.warn(e));
+        } else {
+            playNotes();
+        }
     } catch (e) {
         console.warn('Audio playback failed', e);
     }
