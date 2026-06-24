@@ -1,5 +1,5 @@
 const broker = "broker.hivemq.com";
-const port = 8000;
+const port = 8884;
 const clientId = "peserta_" + Math.random().toString(16).substr(2, 8);
 const topic = "kalananti/hs/timer/room1";
 
@@ -16,6 +16,7 @@ function connectMQTT() {
     client.onMessageArrived = onMessageArrived;
 
     client.connect({
+        useSSL: true,
         onSuccess: () => {
             console.log("Kalananti Timer Iframe: Connected to Juri");
             client.subscribe(topic);

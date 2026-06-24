@@ -1,6 +1,6 @@
 // Konfigurasi MQTT
 const broker = "broker.hivemq.com";
-const port = 8000;
+const port = 8884;
 const clientId = "juri_" + Math.random().toString(16).substr(2, 8);
 const topic = "kalananti/hs/timer/room1";
 
@@ -12,6 +12,7 @@ client.onConnectionLost = onConnectionLost;
 
 function connectMQTT() {
     client.connect({
+        useSSL: true,
         onSuccess: onConnect,
         onFailure: (err) => {
             console.error("MQTT Connect failed", err);
