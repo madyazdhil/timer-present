@@ -61,6 +61,10 @@ function onMessageArrived(message) {
             btnPPause.disabled = false;
             inputPTime.disabled = true;
             
+            // Jika tiba-tiba jalan, pastikan modal tertutup
+            presentModal?.classList.remove('show');
+            flashOverlay?.classList.remove('show');
+            
             if (payload.senderId !== clientId) {
                 lastPresentTick = Date.now();
                 timerWorker.postMessage('stop'); // Yield to the active master
@@ -103,6 +107,10 @@ function onMessageArrived(message) {
             btnQPause.disabled = false;
             inputQTime.disabled = true;
             
+            // Jika tiba-tiba jalan, pastikan modal tertutup
+            qnaModal?.classList.remove('show');
+            flashOverlay?.classList.remove('show');
+            
             if (payload.senderId !== clientId) {
                 lastQnaTick = Date.now();
                 timerWorker.postMessage('qna_stop');
@@ -138,6 +146,10 @@ function onMessageArrived(message) {
             inputQTime.disabled = false;
             qnaModal?.classList.add('show');
             flashOverlay?.classList.add('show'); // Nyalakan flash merah
+        } else if (payload.action === "close_modal") {
+            qnaModal?.classList.remove('show');
+            presentModal?.classList.remove('show');
+            flashOverlay?.classList.remove('show');
         }
     } catch (e) {
         console.error("Parse error", e);
@@ -191,11 +203,13 @@ setInterval(() => {
 btnCloseModal?.addEventListener('click', () => {
     qnaModal?.classList.remove('show');
     flashOverlay?.classList.remove('show');
+    sendMessage({ action: "close_modal" });
 });
 
 btnClosePresentModal?.addEventListener('click', () => {
     presentModal?.classList.remove('show');
     flashOverlay?.classList.remove('show');
+    sendMessage({ action: "close_modal" });
 });
 
 function updateFocusState() {
