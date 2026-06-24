@@ -1,6 +1,6 @@
 // Konfigurasi MQTT
-const broker = "broker.hivemq.com";
-const port = 8884;
+const broker = "broker.emqx.io";
+const port = 8084;
 const clientId = "juri_" + Math.random().toString(16).substr(2, 8);
 const topic = "kalananti/hs/timer/room1";
 
@@ -85,18 +85,17 @@ const btnPStart = document.getElementById("btn-present-start");
 const btnPPause = document.getElementById("btn-present-pause");
 const btnPReset = document.getElementById("btn-present-reset");
 
+let targetEndTime = 0;
+
 function tickPresent() {
-    if (presentTime > 0) {
-        presentTime--;
-        presentDisplay.textContent = formatTime(presentTime);
-        sendMessage({ action: "tick", seconds: presentTime });
-    } else {
+    presentTime = Math.max(0, Math.floor((targetEndTime - Date.now()) / 1000));
+    presentDisplay.textContent = formatTime(presentTime);
+    if (presentTime <= 0) {
         clearInterval(presentInterval);
         presentInterval = null;
         btnPStart.disabled = false;
         btnPPause.disabled = true;
         inputPTime.disabled = false;
-        sendMessage({ action: "timesup" });
     }
 }
 
@@ -109,9 +108,10 @@ btnPStart.addEventListener("click", () => {
             presentTime = parseInt(inputPTime.value) * 60;
         }
 
-        sendMessage({ action: "show" });
+        targetEndTime = Date.now() + (presentTime * 1000);
+        sendMessage({ action: "start", seconds: presentTime });
         
-        presentInterval = setInterval(tickPresent, 1000);
+        presentInterval = setInterval(tickPresent, 200);
         btnPStart.disabled = true;
         btnPPause.disabled = false;
         inputPTime.disabled = true;

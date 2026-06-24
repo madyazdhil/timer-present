@@ -1,5 +1,5 @@
-const broker = "broker.hivemq.com";
-const port = 8884;
+const broker = "broker.emqx.io";
+const port = 8084;
 const clientId = "peserta_" + Math.random().toString(16).substr(2, 8);
 const topic = "kalananti/hs/timer/room1";
 
