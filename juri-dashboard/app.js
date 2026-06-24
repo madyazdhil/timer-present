@@ -41,7 +41,7 @@ function sendMessage(payload) {
     if (client && client.isConnected()) {
         payload.senderId = clientId;
         const message = new Paho.MQTT.Message(JSON.stringify(payload));
-        message.destinationName = "kalananti/timer/status";
+        message.destinationName = topic;
         // Removed retained=true as public brokers often drop them silently!
         client.send(message);
     }
