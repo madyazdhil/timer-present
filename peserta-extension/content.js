@@ -67,6 +67,25 @@ function playChime() {
     }
 }
 
+function playChimeRepeatedly(times) {
+    let count = 0;
+    function playAndSchedule() {
+        if (count < times) {
+            playChime();
+            count++;
+            if (count < times) {
+                setTimeout(playAndSchedule, 4000); // Jeda 4 detik antar putaran
+            }
+        }
+    }
+    playAndSchedule();
+}
+
+// Fitur menghindar jika didekati mouse
+timerContainer.addEventListener("mouseenter", () => {
+    timerContainer.classList.toggle("left");
+});
+
 // Dengarkan pesan dari iframe MQTT
 window.addEventListener("message", (event) => {
     if (event.data && event.data.type === "KALANANTI_TIMER") {
@@ -96,7 +115,7 @@ window.addEventListener("message", (event) => {
                 // Cegah spam bunyi jika sudah muncul
                 if (!timesUpOverlay.classList.contains("show")) {
                     timesUpOverlay.classList.add("show");
-                    playChime(); // Putar musik penanda
+                    playChimeRepeatedly(5); // Putar musik penanda 5 kali
                 }
                 break;
         }
