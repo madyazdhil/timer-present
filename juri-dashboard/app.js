@@ -342,6 +342,7 @@ function tickPresent() {
             btnPPause.disabled = true;
             inputPTime.disabled = false;
             sendMessage({ action: "timesup" });
+            presentModal?.classList.add('show'); // Tampilkan pop up
             flashOverlay?.classList.add('show'); // Nyalakan flash merah
             localStorage.setItem('kalananti_pRunning', 'false');
         }
