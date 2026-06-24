@@ -1,0 +1,65 @@
+/* Floating Timer */
+#kalananti-timer-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #0f172a;
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-family: 'Inter', sans-serif;
+    font-size: 24px;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    z-index: 2147483647; /* Ensure it is on top of everything */
+    display: none; /* Hidden by default */
+    align-items: center;
+    gap: 10px;
+}
+
+#kalananti-timer-container.show {
+    display: flex;
+}
+
+#kalananti-timer-container .label {
+    font-size: 12px;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Fullscreen Time's Up Overlay */
+#kalananti-timesup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(220, 38, 38, 0.95); /* Semi-transparent Red */
+    color: white;
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 2147483647;
+    font-family: 'Inter', sans-serif;
+}
+
+#kalananti-timesup-overlay.show {
+    display: flex;
+}
+
+#kalananti-timesup-overlay h1 {
+    font-size: 80px;
+    font-weight: 900;
+    margin: 0;
+    text-transform: uppercase;
+    text-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+
+#kalananti-timesup-overlay p {
+    font-size: 24px;
+    margin-top: 10px;
+    font-weight: 600;
+}

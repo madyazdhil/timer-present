@@ -1,0 +1,141 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #f4f7f6;
+    color: #333;
+    display: flex;
+    justify-content: center;
+    padding: 40px;
+}
+
+.container {
+    background: #fff;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    width: 100%;
+    max-width: 800px;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 20px;
+    margin-bottom: 30px;
+}
+
+h1 {
+    font-size: 24px;
+    color: #2c3e50;
+}
+
+.status {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.status.disconnected { background: #fee2e2; color: #ef4444; }
+.status.connected { background: #dcfce7; color: #22c55e; }
+
+.panels {
+    display: flex;
+    gap: 30px;
+}
+
+.panel {
+    flex: 1;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+}
+
+.panel h2 {
+    font-size: 18px;
+    color: #475569;
+    margin-bottom: 15px;
+}
+
+.input-group {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.input-group label {
+    font-size: 14px;
+    color: #64748b;
+    font-weight: 600;
+}
+
+.input-group input {
+    width: 60px;
+    padding: 6px;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    text-align: center;
+    outline: none;
+}
+
+.input-group input:focus {
+    border-color: #3b82f6;
+}
+
+.time-display {
+    font-size: 64px;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    color: #0f172a;
+    margin: 10px 0 20px 0;
+}
+
+.controls {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-bottom: 15px;
+}
+
+.btn {
+    padding: 10px 16px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn.primary { background: #3b82f6; color: white; }
+.btn.primary:not(:disabled):hover { background: #2563eb; }
+
+.btn.secondary { background: #e2e8f0; color: #475569; }
+.btn.secondary:not(:disabled):hover { background: #cbd5e1; }
+
+.btn.danger { background: #ef4444; color: white; }
+.btn.danger:not(:disabled):hover { background: #dc2626; }
+
+.desc {
+    font-size: 13px;
+    color: #64748b;
+    margin-top: 15px;
+}

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Time Keeper Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Time Keeper Dashboard</h1>
+            <div id="connection-status" class="status disconnected">Disconnected</div>
+        </header>
+
+        <div class="panels">
+            <!-- Presentasi Panel -->
+            <div class="panel">
+                <h2>Timer Presentasi (Peserta)</h2>
+                <div class="input-group">
+                    <label>Durasi (Menit):</label>
+                    <input type="number" id="input-present-time" value="3" min="1" max="60">
+                </div>
+                <div class="time-display" id="present-display">03:00</div>
+                <div class="controls">
+                    <button id="btn-present-start" class="btn primary">Mulai</button>
+                    <button id="btn-present-pause" class="btn secondary" disabled>Jeda</button>
+                    <button id="btn-present-reset" class="btn danger">Reset</button>
+                </div>
+                <p class="desc">Timer ini akan <b>muncul</b> di layar peserta.</p>
+            </div>
+
+            <!-- QnA Panel -->
+            <div class="panel">
+                <h2>Timer Q&A (Internal)</h2>
+                <div class="input-group">
+                    <label>Durasi (Menit):</label>
+                    <input type="number" id="input-qna-time" value="3" min="1" max="60">
+                </div>
+                <div class="time-display" id="qna-display">03:00</div>
+                <div class="controls">
+                    <button id="btn-qna-start" class="btn primary">Mulai</button>
+                    <button id="btn-qna-pause" class="btn secondary" disabled>Jeda</button>
+                    <button id="btn-qna-reset" class="btn danger">Reset</button>
+                </div>
+                <p class="desc">Timer ini <b>tidak akan muncul</b> di layar peserta.</p>
+            </div>
+        </div>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>
