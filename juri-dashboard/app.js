@@ -78,6 +78,7 @@ function onMessageArrived(message) {
             btnPStart.disabled = false;
             btnPPause.disabled = true;
             inputPTime.disabled = false;
+            flashOverlay.classList.add('show'); // Nyalakan flash merah
         } else if (payload.action === "hide") {
             timerWorker.postMessage('stop');
             presentInterval = false;
@@ -121,6 +122,8 @@ function onMessageArrived(message) {
             btnQStart.disabled = false;
             btnQPause.disabled = true;
             inputQTime.disabled = false;
+            qnaModal.classList.add('show');
+            flashOverlay.classList.add('show'); // Nyalakan flash merah
         }
     } catch (e) {
         console.error("Parse error", e);
@@ -150,10 +153,12 @@ const presentPanel = document.getElementById('present-panel');
 const qnaPanel = document.getElementById('qna-panel');
 const qnaModal = document.getElementById('qna-modal');
 const btnCloseModal = document.getElementById('btn-close-modal');
+const flashOverlay = document.getElementById('flash-overlay');
 
 // Fungsi untuk menutup modal
 btnCloseModal.addEventListener('click', () => {
     qnaModal.classList.remove('show');
+    flashOverlay.classList.remove('show'); // Matikan flash jika modal ditutup
 });
 
 function updateFocusState() {
@@ -264,11 +269,13 @@ function tickPresent() {
         btnPPause.disabled = true;
         inputPTime.disabled = false;
         sendMessage({ action: "timesup" });
+        flashOverlay.classList.add('show'); // Nyalakan flash merah
     }
 }
 
 btnPStart.addEventListener("click", (e) => {
     e.stopPropagation();
+    flashOverlay.classList.remove('show'); // Matikan flash jika mulai lagi
     if (!presentInterval) {
         if (qnaInterval) btnQReset.click();
 
@@ -303,6 +310,7 @@ btnPPause.addEventListener("click", (e) => {
 
 btnPReset.addEventListener("click", (e) => {
     e.stopPropagation();
+    flashOverlay.classList.remove('show'); // Matikan flash jika direset
     timerWorker.postMessage('stop');
     presentInterval = false;
     updateFocusState();
@@ -334,11 +342,13 @@ function tickQnA() {
         inputQTime.disabled = false;
         sendMessage({ action: "qna_timesup" });
         qnaModal.classList.add('show');
+        flashOverlay.classList.add('show'); // Nyalakan flash merah
     }
 }
 
 btnQStart.addEventListener("click", (e) => {
     e.stopPropagation();
+    flashOverlay.classList.remove('show'); // Matikan flash jika mulai lagi
     if (!qnaInterval) {
         if (presentInterval) btnPReset.click();
 
@@ -372,6 +382,7 @@ btnQPause.addEventListener("click", (e) => {
 
 btnQReset.addEventListener("click", (e) => {
     e.stopPropagation();
+    flashOverlay.classList.remove('show'); // Matikan flash jika direset
     timerWorker.postMessage('qna_stop');
     qnaInterval = false;
     updateFocusState();

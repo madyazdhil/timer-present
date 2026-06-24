@@ -248,6 +248,29 @@ h1 {
     font-weight: 600;
 }
 
+/* Flashing Red Overlay */
+#flash-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(225, 29, 72, 0);
+    pointer-events: none; /* Biar tetap bisa klik tombol di bawahnya */
+    z-index: 9998;
+    display: none;
+}
+
+#flash-overlay.show {
+    display: block;
+    animation: flashRed 0.6s infinite alternate ease-in-out;
+}
+
+@keyframes flashRed {
+    from { background: rgba(225, 29, 72, 0.1); }
+    to { background: rgba(225, 29, 72, 0.5); }
+}
+
 /* Mobile Responsiveness */
 @media (max-width: 768px) {
     body {
