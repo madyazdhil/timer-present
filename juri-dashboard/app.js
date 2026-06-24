@@ -9,6 +9,7 @@ let client = new Paho.MQTT.Client(broker, port, clientId);
 const statusEl = document.getElementById("connection-status");
 
 client.onConnectionLost = onConnectionLost;
+client.onMessageArrived = onMessageArrived;
 
 function connectMQTT() {
     client.connect({
@@ -24,6 +25,7 @@ function connectMQTT() {
 function onConnect() {
     statusEl.textContent = "Connected";
     statusEl.className = "status connected";
+    client.subscribe(topic); // Subscribe to sync across multiple juri dashboards
     sendMessage({ action: "hide" });
 }
 
@@ -37,14 +39,56 @@ function onConnectionLost(responseObject) {
 
 function sendMessage(payloadObj) {
     if (client.isConnected()) {
+        payloadObj.senderId = clientId; // Tambahkan sender ID agar tidak loop
         const message = new Paho.MQTT.Message(JSON.stringify(payloadObj));
         message.destinationName = topic;
         client.send(message);
     }
 }
 
+function onMessageArrived(message) {
+    try {
+        const payload = JSON.parse(message.payloadString);
+        if (payload.senderId === clientId) return; // Abaikan pesan dari diri sendiri
+
+        if (payload.action === "tick" || payload.action === "start") {
+            presentTime = payload.seconds;
+            presentDisplay.textContent = formatTime(presentTime);
+            timerWorker.postMessage('stop'); // Biarkan dashboard pengirim yang menghitung
+            presentInterval = true;
+            btnPStart.disabled = true;
+            btnPPause.disabled = false;
+            inputPTime.disabled = true;
+        } else if (payload.action === "pause") {
+            timerWorker.postMessage('stop');
+            presentInterval = false;
+            presentTime = payload.seconds;
+            presentDisplay.textContent = formatTime(presentTime);
+            btnPStart.disabled = false;
+            btnPPause.disabled = true;
+            inputPTime.disabled = false;
+        } else if (payload.action === "timesup") {
+            timerWorker.postMessage('stop');
+            presentInterval = false;
+            presentTime = 0;
+            presentDisplay.textContent = formatTime(presentTime);
+            btnPStart.disabled = false;
+            btnPPause.disabled = true;
+            inputPTime.disabled = false;
+        } else if (payload.action === "hide") {
+            timerWorker.postMessage('stop');
+            presentInterval = false;
+            btnPStart.disabled = false;
+            btnPPause.disabled = true;
+            inputPTime.disabled = false;
+        }
+    } catch (e) {
+        console.error("Parse error", e);
+    }
+}
+
 // State Timer
-let presentInterval = null;
+let presentInterval = false;
 let presentTime = 180;
 
 let qnaInterval = null;
@@ -80,22 +124,45 @@ inputQTime.addEventListener("change", () => {
 presentDisplay.textContent = formatTime(parseInt(inputPTime.value) * 60);
 qnaDisplay.textContent = formatTime(parseInt(inputQTime.value) * 60);
 
+// ===== Web Worker untuk Timer (Anti Throttling di Background) =====
+const workerCode = `
+    let interval = null;
+    self.onmessage = function(e) {
+        if (e.data === 'start') {
+            if (interval) clearInterval(interval);
+            interval = setInterval(() => self.postMessage('tick'), 1000);
+        } else if (e.data === 'stop') {
+            if (interval) clearInterval(interval);
+            interval = null;
+        }
+    };
+`;
+const blob = new Blob([workerCode], {type: 'application/javascript'});
+const timerWorker = new Worker(URL.createObjectURL(blob));
+
+timerWorker.onmessage = function(e) {
+    if (e.data === 'tick') {
+        tickPresent();
+    }
+};
+
 // ===== LOGIKA PRESENTASI =====
 const btnPStart = document.getElementById("btn-present-start");
 const btnPPause = document.getElementById("btn-present-pause");
 const btnPReset = document.getElementById("btn-present-reset");
 
-let targetEndTime = 0;
-
 function tickPresent() {
-    presentTime = Math.max(0, Math.floor((targetEndTime - Date.now()) / 1000));
-    presentDisplay.textContent = formatTime(presentTime);
-    if (presentTime <= 0) {
-        clearInterval(presentInterval);
-        presentInterval = null;
+    if (presentTime > 0) {
+        presentTime--;
+        presentDisplay.textContent = formatTime(presentTime);
+        sendMessage({ action: "tick", seconds: presentTime });
+    } else {
+        timerWorker.postMessage('stop');
+        presentInterval = false;
         btnPStart.disabled = false;
         btnPPause.disabled = true;
         inputPTime.disabled = false;
+        sendMessage({ action: "timesup" });
     }
 }
 
@@ -103,15 +170,15 @@ btnPStart.addEventListener("click", () => {
     if (!presentInterval) {
         if (qnaInterval) btnQReset.click();
 
-        // Update target presentTime jika belum mulai
+        // Update target presentTime jika belum mulai atau sudah di-reset
         if (presentTime === parseInt(inputPTime.value) * 60 || presentDisplay.textContent === formatTime(parseInt(inputPTime.value) * 60)) {
             presentTime = parseInt(inputPTime.value) * 60;
         }
 
-        targetEndTime = Date.now() + (presentTime * 1000);
-        sendMessage({ action: "start", seconds: presentTime });
+        presentInterval = true;
+        sendMessage({ action: "tick", seconds: presentTime });
         
-        presentInterval = setInterval(tickPresent, 200);
+        timerWorker.postMessage('start');
         btnPStart.disabled = true;
         btnPPause.disabled = false;
         inputPTime.disabled = true;
@@ -120,8 +187,8 @@ btnPStart.addEventListener("click", () => {
 
 btnPPause.addEventListener("click", () => {
     if (presentInterval) {
-        clearInterval(presentInterval);
-        presentInterval = null;
+        timerWorker.postMessage('stop');
+        presentInterval = false;
         btnPStart.disabled = false;
         btnPPause.disabled = true;
         inputPTime.disabled = false;
@@ -130,8 +197,8 @@ btnPPause.addEventListener("click", () => {
 });
 
 btnPReset.addEventListener("click", () => {
-    clearInterval(presentInterval);
-    presentInterval = null;
+    timerWorker.postMessage('stop');
+    presentInterval = false;
     presentTime = parseInt(inputPTime.value) * 60;
     presentDisplay.textContent = formatTime(presentTime);
     btnPStart.disabled = false;

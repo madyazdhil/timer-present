@@ -31,8 +31,6 @@ function formatTime(seconds) {
     return `${m}:${s}`;
 }
 
-window.timerInterval = null;
-
 // Dengarkan pesan dari iframe MQTT
 window.addEventListener("message", (event) => {
     if (event.data && event.data.type === "KALANANTI_TIMER") {
@@ -44,35 +42,19 @@ window.addEventListener("message", (event) => {
                 timesUpOverlay.classList.remove("show");
                 break;
             case "hide":
-                if (window.timerInterval) clearInterval(window.timerInterval);
                 timerContainer.classList.remove("show");
                 timesUpOverlay.classList.remove("show");
                 break;
-            case "start":
+            case "tick":
                 timerContainer.classList.add("show");
                 timesUpOverlay.classList.remove("show");
-                
-                let targetEndTime = Date.now() + (payload.seconds * 1000);
-                if (window.timerInterval) clearInterval(window.timerInterval);
-                
                 timerVal.textContent = formatTime(payload.seconds);
-                window.timerInterval = setInterval(() => {
-                    let remain = Math.max(0, Math.floor((targetEndTime - Date.now()) / 1000));
-                    timerVal.textContent = formatTime(remain);
-                    if (remain <= 0) {
-                        clearInterval(window.timerInterval);
-                        timerContainer.classList.remove("show");
-                        timesUpOverlay.classList.add("show");
-                    }
-                }, 200);
                 break;
             case "pause":
-                if (window.timerInterval) clearInterval(window.timerInterval);
                 timerContainer.classList.add("show");
                 timerVal.textContent = formatTime(payload.seconds);
                 break;
             case "timesup":
-                if (window.timerInterval) clearInterval(window.timerInterval);
                 timerContainer.classList.remove("show");
                 timesUpOverlay.classList.add("show");
                 break;
