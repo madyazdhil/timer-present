@@ -37,11 +37,12 @@ function onConnectionLost(responseObject) {
     }
 }
 
-function sendMessage(payloadObj) {
-    if (client.isConnected()) {
-        payloadObj.senderId = clientId; // Tambahkan sender ID agar tidak loop
-        const message = new Paho.MQTT.Message(JSON.stringify(payloadObj));
-        message.destinationName = topic;
+function sendMessage(payload) {
+    if (client && client.isConnected()) {
+        payload.senderId = clientId;
+        const message = new Paho.MQTT.Message(JSON.stringify(payload));
+        message.destinationName = "kalananti/timer/status";
+        message.retained = true; // Retain message so refreshed clients get the last state instantly
         client.send(message);
     }
 }
@@ -54,12 +55,18 @@ function onMessageArrived(message) {
         if (payload.action === "tick" || payload.action === "start") {
             presentTime = payload.seconds;
             presentDisplay.textContent = formatTime(presentTime);
-            timerWorker.postMessage('stop'); // Biarkan dashboard pengirim yang menghitung
             presentInterval = true;
             updateFocusState();
             btnPStart.disabled = true;
             btnPPause.disabled = false;
             inputPTime.disabled = true;
+            
+            if (payload.senderId !== clientId) {
+                lastPresentTick = Date.now();
+                timerWorker.postMessage('stop'); // Yield to the active master
+            } else {
+                lastPresentTick = Date.now(); // I am the master
+            }
         } else if (payload.action === "pause") {
             timerWorker.postMessage('stop');
             presentInterval = false;
@@ -78,7 +85,8 @@ function onMessageArrived(message) {
             btnPStart.disabled = false;
             btnPPause.disabled = true;
             inputPTime.disabled = false;
-            flashOverlay.classList.add('show'); // Nyalakan flash merah
+            flashOverlay.classList.add('show');
+            presentModal.classList.add('show'); // Tampilkan pop up
         } else if (payload.action === "hide") {
             timerWorker.postMessage('stop');
             presentInterval = false;
@@ -89,12 +97,18 @@ function onMessageArrived(message) {
         } else if (payload.action === "qna_tick" || payload.action === "qna_start") {
             qnaTime = payload.seconds;
             qnaDisplay.textContent = formatTime(qnaTime);
-            timerWorker.postMessage('qna_stop'); // Biarkan dashboard pengirim yang menghitung
             qnaInterval = true;
             updateFocusState();
             btnQStart.disabled = true;
             btnQPause.disabled = false;
             inputQTime.disabled = true;
+            
+            if (payload.senderId !== clientId) {
+                lastQnaTick = Date.now();
+                timerWorker.postMessage('qna_stop');
+            } else {
+                lastQnaTick = Date.now();
+            }
         } else if (payload.action === "qna_pause") {
             timerWorker.postMessage('qna_stop');
             qnaInterval = false;
@@ -152,13 +166,36 @@ const panelsContainer = document.querySelector('.panels');
 const presentPanel = document.getElementById('present-panel');
 const qnaPanel = document.getElementById('qna-panel');
 const qnaModal = document.getElementById('qna-modal');
+const presentModal = document.getElementById('present-modal');
 const btnCloseModal = document.getElementById('btn-close-modal');
+const btnClosePresentModal = document.getElementById('btn-close-present-modal');
 const flashOverlay = document.getElementById('flash-overlay');
+
+let lastPresentTick = Date.now();
+let lastQnaTick = Date.now();
+
+// Leader election fallback
+setInterval(() => {
+    if (presentInterval && (Date.now() - lastPresentTick) > 2500) {
+        // Master mati / ter-refresh, ambil alih!
+        timerWorker.postMessage('start');
+        lastPresentTick = Date.now();
+    }
+    if (qnaInterval && (Date.now() - lastQnaTick) > 2500) {
+        timerWorker.postMessage('qna_start');
+        lastQnaTick = Date.now();
+    }
+}, 1000);
 
 // Fungsi untuk menutup modal
 btnCloseModal.addEventListener('click', () => {
     qnaModal.classList.remove('show');
-    flashOverlay.classList.remove('show'); // Matikan flash jika modal ditutup
+    flashOverlay.classList.remove('show');
+});
+
+btnClosePresentModal.addEventListener('click', () => {
+    presentModal.classList.remove('show');
+    flashOverlay.classList.remove('show');
 });
 
 function updateFocusState() {
