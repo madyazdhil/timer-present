@@ -42,7 +42,7 @@ function sendMessage(payload) {
         payload.senderId = clientId;
         const message = new Paho.MQTT.Message(JSON.stringify(payload));
         message.destinationName = "kalananti/timer/status";
-        message.retained = true; // Retain message so refreshed clients get the last state instantly
+        // Removed retained=true as public brokers often drop them silently!
         client.send(message);
     }
 }
@@ -239,23 +239,43 @@ document.body.addEventListener('click', (e) => {
     }
 });
 
-inputPTime.addEventListener("change", () => {
-    if (!presentInterval) {
-        presentTime = parseInt(inputPTime.value) * 60;
+inputPTime.addEventListener('change', () => {
+    const val = parseInt(inputPTime.value, 10) || 0;
+    presentTime = val * 60;
+    presentDisplay.textContent = formatTime(presentTime);
+    localStorage.setItem('kalananti_pTime', presentTime);
+});
+
+inputQTime.addEventListener('change', () => {
+    const val = parseInt(inputQTime.value, 10) || 0;
+    qnaTime = val * 60;
+    qnaDisplay.textContent = formatTime(qnaTime);
+    localStorage.setItem('kalananti_qTime', qnaTime);
+});
+
+// INIT: Coba load dari localStorage jika baru refresh
+window.addEventListener('load', () => {
+    const savedPTime = localStorage.getItem('kalananti_pTime');
+    const savedPRunning = localStorage.getItem('kalananti_pRunning');
+    const savedQTime = localStorage.getItem('kalananti_qTime');
+    const savedQRunning = localStorage.getItem('kalananti_qRunning');
+
+    if (savedPTime) {
+        presentTime = parseInt(savedPTime, 10);
         presentDisplay.textContent = formatTime(presentTime);
+        if (savedPRunning === 'true' && presentTime > 0) {
+            btnPStart.click(); // Auto-resume
+        }
     }
-});
-
-inputQTime.addEventListener("change", () => {
-    if (!qnaInterval) {
-        qnaTime = parseInt(inputQTime.value) * 60;
+    
+    if (savedQTime) {
+        qnaTime = parseInt(savedQTime, 10);
         qnaDisplay.textContent = formatTime(qnaTime);
+        if (savedQRunning === 'true' && qnaTime > 0) {
+            btnQStart.click(); // Auto-resume
+        }
     }
 });
-
-// Init on load
-presentDisplay.textContent = formatTime(parseInt(inputPTime.value) * 60);
-qnaDisplay.textContent = formatTime(parseInt(inputQTime.value) * 60);
 
 // ===== Web Worker untuk Timer (Anti Throttling di Background) =====
 const workerCode = `
@@ -298,6 +318,8 @@ function tickPresent() {
         presentTime--;
         presentDisplay.textContent = formatTime(presentTime);
         sendMessage({ action: "tick", seconds: presentTime });
+        localStorage.setItem('kalananti_pTime', presentTime);
+        localStorage.setItem('kalananti_pRunning', 'true');
     } else {
         timerWorker.postMessage('stop');
         presentInterval = false;
@@ -307,6 +329,7 @@ function tickPresent() {
         inputPTime.disabled = false;
         sendMessage({ action: "timesup" });
         flashOverlay.classList.add('show'); // Nyalakan flash merah
+        localStorage.setItem('kalananti_pRunning', 'false');
     }
 }
 
@@ -329,20 +352,20 @@ btnPStart.addEventListener("click", (e) => {
         btnPStart.disabled = true;
         btnPPause.disabled = false;
         inputPTime.disabled = true;
+        localStorage.setItem('kalananti_pRunning', 'true');
     }
 });
 
 btnPPause.addEventListener("click", (e) => {
     e.stopPropagation();
-    if (presentInterval) {
-        timerWorker.postMessage('stop');
-        presentInterval = false;
-        updateFocusState();
-        btnPStart.disabled = false;
-        btnPPause.disabled = true;
-        inputPTime.disabled = false;
-        sendMessage({ action: "pause", seconds: presentTime });
-    }
+    timerWorker.postMessage('stop');
+    presentInterval = false;
+    updateFocusState();
+    btnPStart.disabled = false;
+    btnPPause.disabled = true;
+    inputPTime.disabled = false;
+    sendMessage({ action: "pause", seconds: presentTime });
+    localStorage.setItem('kalananti_pRunning', 'false');
 });
 
 btnPReset.addEventListener("click", (e) => {
@@ -351,12 +374,15 @@ btnPReset.addEventListener("click", (e) => {
     timerWorker.postMessage('stop');
     presentInterval = false;
     updateFocusState();
-    presentTime = parseInt(inputPTime.value) * 60;
+    const val = parseInt(inputPTime.value, 10) || 0;
+    presentTime = val * 60;
     presentDisplay.textContent = formatTime(presentTime);
     btnPStart.disabled = false;
     btnPPause.disabled = true;
     inputPTime.disabled = false;
     sendMessage({ action: "hide" });
+    localStorage.setItem('kalananti_pTime', presentTime);
+    localStorage.setItem('kalananti_pRunning', 'false');
 });
 
 
@@ -370,6 +396,8 @@ function tickQnA() {
         qnaTime--;
         qnaDisplay.textContent = formatTime(qnaTime);
         sendMessage({ action: "qna_tick", seconds: qnaTime });
+        localStorage.setItem('kalananti_qTime', qnaTime);
+        localStorage.setItem('kalananti_qRunning', 'true');
     } else {
         timerWorker.postMessage('qna_stop');
         qnaInterval = false;
@@ -380,6 +408,7 @@ function tickQnA() {
         sendMessage({ action: "qna_timesup" });
         qnaModal.classList.add('show');
         flashOverlay.classList.add('show'); // Nyalakan flash merah
+        localStorage.setItem('kalananti_qRunning', 'false');
     }
 }
 
@@ -401,20 +430,20 @@ btnQStart.addEventListener("click", (e) => {
         btnQStart.disabled = true;
         btnQPause.disabled = false;
         inputQTime.disabled = true;
+        localStorage.setItem('kalananti_qRunning', 'true');
     }
 });
 
 btnQPause.addEventListener("click", (e) => {
     e.stopPropagation();
-    if (qnaInterval) {
-        timerWorker.postMessage('qna_stop');
-        qnaInterval = false;
-        updateFocusState();
-        btnQStart.disabled = false;
-        btnQPause.disabled = true;
-        inputQTime.disabled = false;
-        sendMessage({ action: "qna_pause", seconds: qnaTime });
-    }
+    timerWorker.postMessage('qna_stop');
+    qnaInterval = false;
+    updateFocusState();
+    btnQStart.disabled = false;
+    btnQPause.disabled = true;
+    inputQTime.disabled = false;
+    sendMessage({ action: "qna_pause", seconds: qnaTime });
+    localStorage.setItem('kalananti_qRunning', 'false');
 });
 
 btnQReset.addEventListener("click", (e) => {
@@ -423,12 +452,15 @@ btnQReset.addEventListener("click", (e) => {
     timerWorker.postMessage('qna_stop');
     qnaInterval = false;
     updateFocusState();
-    qnaTime = parseInt(inputQTime.value) * 60;
+    const val = parseInt(inputQTime.value, 10) || 0;
+    qnaTime = val * 60;
     qnaDisplay.textContent = formatTime(qnaTime);
     btnQStart.disabled = false;
     btnQPause.disabled = true;
     inputQTime.disabled = false;
     sendMessage({ action: "qna_reset", seconds: qnaTime });
+    localStorage.setItem('kalananti_qTime', qnaTime);
+    localStorage.setItem('kalananti_qRunning', 'false');
 });
 
 connectMQTT();
