@@ -87,8 +87,8 @@ h1 {
 }
 
 .panels.has-focus .panel.focused {
-    transform: scale(1.05) translateZ(0);
-    box-shadow: 0 25px 50px rgba(0,0,0,0.1);
+    transform: scale(1.5) translateZ(0);
+    box-shadow: 0 40px 80px rgba(0,0,0,0.15);
     z-index: 10;
 }
 
@@ -132,7 +132,7 @@ h1 {
 }
 
 .time-display {
-    font-size: 85px;
+    font-size: 110px;
     font-weight: 800;
     font-variant-numeric: tabular-nums;
     color: #1a1a1a;
@@ -306,7 +306,7 @@ h1 {
     }
 
     .panels.has-focus .panel.focused {
-        transform: scale(1.02);
+        transform: scale(1.15);
     }
 
     .panel {
