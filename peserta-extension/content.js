@@ -100,18 +100,28 @@ function playChime() {
     }
 }
 
+let chimeTimeoutId = null;
+
 function playChimeRepeatedly(times) {
+    stopChime(); // Hentikan jika sedang berjalan
     let count = 0;
     function playAndSchedule() {
         if (count < times) {
             playChime();
             count++;
             if (count < times) {
-                setTimeout(playAndSchedule, 4000); // Jeda 4 detik antar putaran
+                chimeTimeoutId = setTimeout(playAndSchedule, 4000); // Jeda 4 detik antar putaran
             }
         }
     }
     playAndSchedule();
+}
+
+function stopChime() {
+    if (chimeTimeoutId) {
+        clearTimeout(chimeTimeoutId);
+        chimeTimeoutId = null;
+    }
 }
 
 // Fitur menghindar jika didekati mouse
@@ -128,19 +138,26 @@ window.addEventListener("message", (event) => {
             case "show":
                 timerContainer.classList.add("show");
                 timesUpOverlay.classList.remove("show");
+                stopChime();
                 break;
             case "hide":
                 timerContainer.classList.remove("show");
                 timesUpOverlay.classList.remove("show");
+                stopChime();
                 break;
             case "tick":
                 timerContainer.classList.add("show");
                 timesUpOverlay.classList.remove("show");
+                stopChime();
                 timerVal.textContent = formatTime(payload.seconds);
                 break;
             case "pause":
                 timerContainer.classList.add("show");
                 timerVal.textContent = formatTime(payload.seconds);
+                break;
+            case "close_modal":
+                timesUpOverlay.classList.remove("show");
+                stopChime();
                 break;
             case "timesup":
                 timerContainer.classList.remove("show");
